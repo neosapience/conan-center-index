@@ -4,4 +4,4 @@ project(test_package LANGUAGES C)
 find_package(typecast REQUIRED CONFIG)
 
 add_executable(${PROJECT_NAME} test_package.c)
-target_link_libraries(${PROJECT_NAME} PRIVATE typecast::typecast)
+target_link_libraries(${PROJECT_NAME} PRIVATE $<IF:$<TARGET_EXISTS:typecast::typecast_static>,typecast::typecast_static,typecast::typecast>)

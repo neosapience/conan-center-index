@@ -1,6 +1,7 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain, cmake_layout
 from conan.tools.files import copy, get, rmdir
+from conan.tools.build import check_min_cstd
 import os
 
 required_conan_version = ">=2.4"
@@ -37,13 +38,17 @@ class TypecastSDKConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["TYPECAST_BUILD_SHARED"] = self.options.shared
-        tc.variables["TYPECAST_BUILD_STATIC"] = not self.options.shared
-        tc.variables["TYPECAST_BUILD_EXAMPLES"] = False
-        tc.variables["TYPECAST_BUILD_TESTS"] = False
+        tc.cache_variables["TYPECAST_BUILD_SHARED"] = self.options.shared
+        tc.cache_variables["TYPECAST_BUILD_STATIC"] = not self.options.shared
+        tc.cache_variables["TYPECAST_BUILD_EXAMPLES"] = False
+        tc.cache_variables["TYPECAST_BUILD_TESTS"] = False
         tc.generate()
         deps = CMakeDeps(self)
         deps.generate()
+
+    def validate(self):
+        if self.settings.get_safe("compiler.cstd"):
+            check_min_cstd(self, 11)
 
     def build(self):
         cmake = CMake(self)
@@ -57,19 +62,16 @@ class TypecastSDKConan(ConanFile):
         cmake = CMake(self)
         cmake.install()
         rmdir(self, os.path.join(self.package_folder, "lib", "cmake"))
-        rmdir(self, os.path.join(self.package_folder, "lib", "pkgconfig"))
 
     def package_info(self):
         self.cpp_info.set_property("cmake_file_name", "typecast")
-        self.cpp_info.set_property("cmake_target_name", "typecast::typecast")
-
         if self.options.shared:
             self.cpp_info.libs = ["typecast"]
+            self.cpp_info.set_property("cmake_target_name", "typecast::typecast")
         else:
             self.cpp_info.libs = ["typecast_static"]
             self.cpp_info.defines = ["TYPECAST_STATIC"]
-
-        self.cpp_info.requires = ["libcurl::libcurl"]
+            self.cpp_info.set_property("cmake_target_name", "typecast::typecast_static")
 
         if self.settings.os in ["Linux", "FreeBSD"]:
             self.cpp_info.system_libs = ["m"]
