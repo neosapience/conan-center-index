@@ -6,8 +6,8 @@ import os
 required_conan_version = ">=2.1"
 
 
-class TypecastConan(ConanFile):
-    name = "typecast-ai"
+class TypecastSDKConan(ConanFile):
+    name = "typecast-sdk"
     description = "Text-to-Speech API client library for Typecast AI. Pure C with optional C++ wrapper."
     license = "MIT"
     url = "https://github.com/conan-io/conan-center-index"
